@@ -1,0 +1,9 @@
+- Confirm if we want this buyer readiness card:
+  What changed:
+   1. The logic now searches for the first month (firstCashReadyIndex) where Liquid Assets >= Next Target Cost.
+   2. If found, the card uses the data from that specific month (e.g., Year 3) to show affordability metrics.
+   3. If not found (never enough cash), it defaults to using data from Month 0 (Today).
+   4. The card's description now dynamically appends context like (Year 3.5) or (Today) so the user knows exactly which point in time the numbers represent.
+
+
+- Question why changing the return before buy has so little impact on the final number  
