@@ -78,7 +78,7 @@ def run_simulation(scenario: Scenario, market_params: GlobalMarketParams) -> pd.
         
         # 4. Budget & Surplus
         disposable_surplus = net_monthly_income - housing_cost - state.current_living_expenses
-        _process_surplus(state, disposable_surplus, scenario)
+        _process_surplus(state, disposable_surplus, scenario, net_monthly_income)
 
         # 5. Record Data
         # Calculate derived stats for UI
@@ -288,32 +288,46 @@ def _attempt_purchase(state: SimulationState, targets: list, market_params: Glob
         
         state.next_target_idx += 1
 
-def _process_surplus(state: SimulationState, surplus: float, scenario: Scenario):
+def _process_surplus(state: SimulationState, surplus: float, scenario: Scenario, net_monthly_income: float):
+    # Targets are relative to TOTAL NET INCOME
+    target_invest = net_monthly_income * scenario.investment_percent
+    target_save = net_monthly_income * scenario.cash_savings_percent
+    
+    # We can only allocate what we actually have (the surplus after rent/essentials)
     if surplus > 0:
-        spend = surplus * scenario.discretionary_spending_percent
-        save = surplus * scenario.cash_savings_percent
-        state.cash_savings_balance += save
+        # 1. Prioritize Investment
+        to_invest = min(surplus, target_invest)
+        remaining = surplus - to_invest
         
-        to_invest = surplus - spend - save
+        # 2. Prioritize Savings
+        to_save = min(remaining, target_save)
+        remaining = remaining - to_save
+        
+        # 3. Apply to balances
+        state.cash_savings_balance += to_save
         
         # Investment Waterfall
+        invest_amount = to_invest
         if not state.is_owner and state.fhsa_room > 0 and state.fhsa_lifetime_contribution < 40000:
-            deposit = min(to_invest, state.fhsa_room, 40000 - state.fhsa_lifetime_contribution)
+            deposit = min(invest_amount, state.fhsa_room, 40000 - state.fhsa_lifetime_contribution)
             state.fhsa_balance += deposit
             state.fhsa_room -= deposit
             state.fhsa_lifetime_contribution += deposit
-            to_invest -= deposit
+            invest_amount -= deposit
             
-        if to_invest > 0 and state.tfsa_room > 0:
-            deposit = min(to_invest, state.tfsa_room)
+        if invest_amount > 0 and state.tfsa_room > 0:
+            deposit = min(invest_amount, state.tfsa_room)
             state.tfsa_balance += deposit
             state.tfsa_room -= deposit
-            to_invest -= deposit
+            invest_amount -= deposit
             
-        if to_invest > 0:
-            state.unreg_balance += to_invest
+        if invest_amount > 0:
+            state.unreg_balance += invest_amount
+            
+        # 4. Lifestyle gets the remainder (implicitly burned/consumed)
+        
     else:
-        # Deficit
+        # Deficit Logic
         needed = abs(surplus)
         if state.cash_savings_balance > 0:
             taken = min(state.cash_savings_balance, needed)

@@ -32,7 +32,7 @@ def read_root():
 def simulate_scenario(request: SimulationRequest):
     try:
         # Debug Log
-        print(f"DEBUG: Expenses={request.scenario.monthly_living_expenses}, Spend={request.scenario.discretionary_spending_percent}, Save={request.scenario.cash_savings_percent}")
+        print(f"DEBUG: Expenses={request.scenario.monthly_living_expenses}, Invest={request.scenario.investment_percent}, Save={request.scenario.cash_savings_percent}")
         
         # Run the existing simulation logic
         df = run_simulation(request.scenario, request.market_params)
