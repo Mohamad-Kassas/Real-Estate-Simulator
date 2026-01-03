@@ -1,6 +1,7 @@
 import React from 'react';
 import { Activity, Sun, Moon, Clock, TrendingUp, DollarSign, Settings, Check, Copy } from 'lucide-react';
 import FinancialSnapshot from './FinancialSnapshot';
+import BudgetAllocator from './BudgetAllocator';
 
 const Sidebar = ({
   darkMode, toggleDarkMode,
@@ -146,58 +147,17 @@ const Sidebar = ({
               <label className="block text-xs font-medium text-slate-600 dark:text-gray-300">Initial Cash</label>
               <input type="number" name="initial_cash" value={scenario.initial_cash} onChange={handleScenarioChange} className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-sm text-slate-900 dark:text-gray-100 border-slate-200 dark:border-gray-600" step="1000" />
             </div>
+            
+            {/* New Budget Allocator */}
             <div className="pt-4 border-t border-slate-100 dark:border-gray-700">
-              <h3 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-2 uppercase">Monthly Budget</h3>
+              <h3 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-4 uppercase">Monthly Allocation</h3>
               
-              <div className="mb-3">
-                <label className="block text-xs font-medium text-slate-600 dark:text-gray-300">Current Rent</label>
-                <input type="number" name="current_rent" value={scenario.current_rent} onChange={handleScenarioChange} className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-sm text-slate-900 dark:text-gray-100 border-slate-200 dark:border-gray-600" step="50" />
-              </div>
-
-              <div className="mb-3">
-                <label className="block text-xs font-medium text-slate-600 dark:text-gray-300">Living Expenses ($)</label>
-                <input type="number" name="monthly_living_expenses" value={scenario.monthly_living_expenses} onChange={handleScenarioChange} className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-sm text-slate-900 dark:text-gray-100 border-slate-200 dark:border-gray-600" step="100" />
-                <p className="text-[10px] text-slate-400 mt-1">Groceries, bills, transport (excludes housing).</p>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Lifestyle Spending</span>
-                    <span className="font-mono">{(scenario.discretionary_spending_percent * 100).toFixed(0)}%</span>
-                  </div>
-                  <input 
-                    type="range" 
-                    name="discretionary_spending_percent" 
-                    value={scenario.discretionary_spending_percent} 
-                    onChange={handleScenarioChange} 
-                    className="w-full accent-pink-500" 
-                    min="0" max="1" step="0.05" 
-                  />
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Cash Savings</span>
-                    <span className="font-mono">{(scenario.cash_savings_percent * 100).toFixed(0)}%</span>
-                  </div>
-                  <input 
-                    type="range" 
-                    name="cash_savings_percent" 
-                    value={scenario.cash_savings_percent} 
-                    onChange={handleScenarioChange} 
-                    className="w-full accent-emerald-500" 
-                    min="0" max="1" step="0.05" 
-                  />
-                </div>
-
-                <div className="flex justify-between items-center bg-slate-100 dark:bg-gray-700 p-2 rounded text-xs">
-                  <span className="font-medium">Remaining for Investment</span>
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                    {Math.max(0, (1 - scenario.discretionary_spending_percent - scenario.cash_savings_percent) * 100).toFixed(0)}%
-                  </span>
-                </div>
-              </div>
+              <BudgetAllocator 
+                scenario={scenario}
+                handleScenarioChange={handleScenarioChange}
+                netMonthlyIncome={currentRecord ? currentRecord["Net Monthly Income"] : 0}
+                formatCurrency={formatCurrency}
+              />
             </div>
           </div>
         </section>
@@ -227,7 +187,7 @@ const Sidebar = ({
                  <label className="text-xs font-medium text-slate-600 dark:text-gray-300">Safe Savings Rate</label>
                  <span className="text-xs font-mono bg-slate-100 dark:bg-gray-700 px-1 rounded text-slate-900 dark:text-gray-100">{(scenario.investment_profile.safe_savings_rate * 100).toFixed(1)}%</span>
               </div>
-              <input type="range" name="safe_savings_rate" value={scenario.investment_profile.safe_savings_rate} onChange={handleInvChange} className="w-full accent-slate-500" min="0" max="0.10" step="0.005" />
+              <input type="range" name="safe_savings_rate" value={scenario.investment_profile.safe_savings_rate} onChange={handleInvChange} className="w-full accent-slate-400" min="0" max="0.10" step="0.005" />
             </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" name="downpayment_glide_path" checked={scenario.investment_profile.downpayment_glide_path} onChange={handleInvChange} className="rounded text-indigo-600 focus:ring-indigo-500" />

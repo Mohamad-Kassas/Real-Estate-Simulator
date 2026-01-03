@@ -28,12 +28,12 @@ function App() {
   // Scenario Config
   const [scenario, setScenario] = useState({
     id: 'sc_1',
-    name: 'Buy $500k',
-    initial_cash: 60000,
-    gross_annual_income: 95000,
+    name: 'Buy $1.5M',
+    initial_cash: 10000,
+    gross_annual_income: 250000,
     current_rent: 2100,
     monthly_living_expenses: 2000,
-    discretionary_spending_percent: 0.30,
+    investment_percent: 0.30,
     cash_savings_percent: 0.20,
     property_targets: [],
     investment_profile: {
@@ -46,11 +46,11 @@ function App() {
 
   // Property Inputs State
   const [propInputs, setPropInputs] = useState({
-    p1_price: 500000,
+    p1_price: 1500000,
     p1_down: 20,
-    lad_p1_price: 400000,
+    lad_p1_price: 600000,
     lad_p1_down: 5,
-    lad_p2_price: 900000,
+    lad_p2_price: 1500000,
     lad_p2_down: 20
   });
 
@@ -128,31 +128,8 @@ function App() {
   const handleScenarioChange = (e) => {
     const { name, value } = e.target;
     let newValue = parseFloat(value);
-
-    if (name === 'discretionary_spending_percent') {
-      const currentSave = scenario.cash_savings_percent;
-      if (newValue + currentSave > 1.0) {
-        const newSave = Math.max(0, 1.0 - newValue);
-        setScenario(prev => ({
-          ...prev,
-          [name]: newValue,
-          cash_savings_percent: parseFloat(newSave.toFixed(2))
-        }));
-        return;
-      }
-    } else if (name === 'cash_savings_percent') {
-      const currentSpend = scenario.discretionary_spending_percent;
-      if (newValue + currentSpend > 1.0) {
-        const newSpend = Math.max(0, 1.0 - newValue);
-        setScenario(prev => ({
-          ...prev,
-          [name]: newValue,
-          discretionary_spending_percent: parseFloat(newSpend.toFixed(2))
-        }));
-        return;
-      }
-    }
-
+    
+    // Direct state update for any scenario field
     setScenario(prev => ({ ...prev, [name]: newValue }));
   };
 

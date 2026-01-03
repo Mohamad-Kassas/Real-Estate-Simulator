@@ -23,8 +23,13 @@ class Scenario(BaseModel):
     
     # Budget Config
     monthly_living_expenses: float = Field(2000.0, description="Baseline monthly living expenses (excluding housing)")
-    discretionary_spending_percent: float = Field(0.30, description="Percentage of surplus spent on lifestyle")
-    cash_savings_percent: float = Field(0.20, description="Percentage of surplus kept as cash savings")
+    
+    # These are now Percentages of TOTAL NET MONTHLY INCOME
+    investment_percent: float = Field(0.30, description="Target % of Net Income for Investments")
+    cash_savings_percent: float = Field(0.20, description="Target % of Net Income for Cash Savings")
+    
+    # Lifestyle is the remainder (calculated dynamically), but we can store a 'target' or just burn the rest.
+    # For the simulation, we'll assume any surplus after Invest/Save/Fixed is Lifestyle.
 
     # Strategy Config
     property_targets: list["PropertyTarget"] = Field(default_factory=list, description="Ordered list of properties to buy")

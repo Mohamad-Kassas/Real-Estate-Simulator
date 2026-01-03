@@ -29,7 +29,7 @@ class TestSimulationBudget(unittest.TestCase):
             gross_annual_income=120000, # ~10k/mo gross -> ~7k net
             current_rent=2000,
             monthly_living_expenses=1000, # Surplus ~4k
-            discretionary_spending_percent=0.0, # Save everything
+            investment_percent=0.40, # Invest ~2.8k (High Savings)
             cash_savings_percent=0.0,
             property_targets=[],
             investment_profile=self.profile
@@ -42,7 +42,7 @@ class TestSimulationBudget(unittest.TestCase):
             gross_annual_income=120000, 
             current_rent=2000,
             monthly_living_expenses=4000, # Surplus ~1k
-            discretionary_spending_percent=0.0,
+            investment_percent=0.10, # Invest ~0.7k (Limited by surplus anyway)
             cash_savings_percent=0.0,
             property_targets=[],
             investment_profile=self.profile
@@ -64,20 +64,22 @@ class TestSimulationBudget(unittest.TestCase):
     def test_spending_impact(self):
         """Test that lifestyle spending reduces net worth."""
         # Baseline surplus ~4k/mo
+        # Saver: Invests heavily
         sc_saver = Scenario(
             id="saver", name="Saver",
             initial_cash=0, gross_annual_income=120000, current_rent=2000,
             monthly_living_expenses=1000,
-            discretionary_spending_percent=0.0, # 0% spend
+            investment_percent=0.50, # Invest 50% of Income (~3.5k)
             cash_savings_percent=0.0,
             property_targets=[], investment_profile=self.profile
         )
         
+        # Spender: Invests little, lifestyle absorbs the rest
         sc_spender = Scenario(
             id="spender", name="Spender",
             initial_cash=0, gross_annual_income=120000, current_rent=2000,
             monthly_living_expenses=1000,
-            discretionary_spending_percent=0.5, # 50% spend
+            investment_percent=0.10, # Invest 10% of Income (~0.7k) -> Rest is blown on Lifestyle
             cash_savings_percent=0.0,
             property_targets=[], investment_profile=self.profile
         )
