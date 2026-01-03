@@ -198,15 +198,29 @@ def check_stress_test(
     mortgage_payment_annual: float,
     property_tax_annual: float,
     heating_cost_annual: float,
-    condo_fees_annual: float
+    condo_fees_annual: float,
+    other_monthly_debt: float = 0.0
 ) -> bool:
     """
-    Checks GDS Ratio. Limit 0.39.
-    GDS = (Mortgage + Tax + Heat + CondoFees) / GrossIncome
+    Checks GDS (Gross Debt Service) and TDS (Total Debt Service) Ratios per B-20 Guidelines.
+    
+    GDS Limit: 39%
+    GDS = (Mortgage + Tax + Heat + 0.5 * CondoFees) / GrossIncome
+    
+    TDS Limit: 44%
+    TDS = (HousingCosts + OtherDebts) / GrossIncome
     """
-    gds_expenses = mortgage_payment_annual + property_tax_annual + heating_cost_annual + condo_fees_annual
+    # GDS Calculation
+    # Note: Only 50% of condo fees are used for qualifying
+    gds_expenses = mortgage_payment_annual + property_tax_annual + heating_cost_annual + (0.5 * condo_fees_annual)
     gds_ratio = gds_expenses / gross_annual_income
-    return gds_ratio <= 0.39
+    
+    # TDS Calculation
+    other_debt_annual = other_monthly_debt * 12
+    tds_expenses = gds_expenses + other_debt_annual
+    tds_ratio = tds_expenses / gross_annual_income
+    
+    return (gds_ratio <= 0.39) and (tds_ratio <= 0.44)
 
 def get_qualifying_rate(contract_rate: float, stress_floor: float = 0.0525) -> float:
     """

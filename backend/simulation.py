@@ -86,9 +86,9 @@ def run_simulation(scenario: Scenario, market_params: GlobalMarketParams) -> pd.
         liquid_assets = state.fhsa_balance + state.tfsa_balance + state.unreg_balance + state.cash_savings_balance
         
         # Hypothetical GDS for next target
-        next_target_cost, gds_ratio, stress_passed, hyp_housing, max_housing = _calculate_readiness_stats(state, targets, market_params, current_year_idx)
+        readiness_stats = _calculate_readiness_stats(state, targets, market_params, current_year_idx)
         
-        records.append({
+        record = {
             "Month": month,
             "Year": month / 12.0,
             "Net Worth": total_net_worth,
@@ -99,17 +99,23 @@ def run_simulation(scenario: Scenario, market_params: GlobalMarketParams) -> pd.
             "Mortgage Debt": state.mortgage_principal if state.is_owner else 0,
             "Is Owner": state.is_owner,
             "Current Home": state.next_target_idx, 
-            "Next Target Cost": next_target_cost,
+            "Next Target Cost": readiness_stats["target_down_total_cash"],
             "Monthly Surplus": max(0, disposable_surplus),
             "Net Monthly Income": net_monthly_income,
             "Gross Monthly Income": state.current_gross_income / 12.0,
             "Housing Expense": housing_cost,
             "Living Expenses": state.current_living_expenses,
-            "GDS Ratio": gds_ratio,
-            "Stress Test Passed": stress_passed,
-            "Hypothetical Monthly Housing": hyp_housing,
-            "Max Affordable Housing": max_housing
-        })
+            "GDS Ratio": readiness_stats["current_gds_ratio"],
+            "Stress Test Passed": readiness_stats["stress_test_passed"],
+            "Hypothetical Monthly Housing": readiness_stats["hyp_monthly_housing"],
+            "Max Affordable Housing": readiness_stats["max_monthly_housing"],
+            # Detailed Stress Stats
+            "Stress Qualifying Rate": readiness_stats["qualifying_rate"],
+            "Stress Payment": readiness_stats["stress_payment_monthly"],
+            "Actual Payment": readiness_stats["actual_payment_monthly"],
+            "Hyp Mortgage Debt": readiness_stats["mortgage_amount"]
+        }
+        records.append(record)
 
         # 6. Monthly Inflation & Growth (Prepare for Next Month)
         _apply_monthly_growth(state, targets, scenario, market_params)
@@ -167,12 +173,9 @@ def calculate_purchase_requirements(price: float, user_target_percent: float):
 
 def _apply_annual_updates(state: SimulationState, market_params: GlobalMarketParams):
     """
-    Applies annual discrete updates like Salary Raises and TFSA Room.
+    Applies annual discrete updates like TFSA Room.
     Triggered at the start of every 12th month (Jan).
     """
-    # Salary Raise
-    state.current_gross_income *= (1 + market_params.inflation_rate)
-    
     # TFSA Room (New Year = New Room + Re-contribution)
     state.tfsa_room += 7000 + state.tfsa_withdrawal_this_year
     state.tfsa_withdrawal_this_year = 0.0
@@ -224,7 +227,8 @@ def _attempt_purchase(state: SimulationState, targets: list, market_params: Glob
     equity_proceeds = 0.0
     
     if state.is_owner and target.sell_existing:
-        selling_costs = (state.home_value * 0.05) + 2000 
+        # 5% Commission + 13% HST on Commission + Legal Fees
+        selling_costs = (state.home_value * 0.05 * 1.13) + 2000 
         equity_raw = state.home_value - state.mortgage_principal
         equity_proceeds = max(0, equity_raw - selling_costs)
         
@@ -332,7 +336,20 @@ def _process_surplus(state: SimulationState, surplus: float, scenario: Scenario)
 
 def _calculate_readiness_stats(state: SimulationState, targets: list, market_params: GlobalMarketParams, year_idx: int):
     if state.next_target_idx >= len(targets):
-        return 0, 0.0, False, 0.0, 0.0
+        return {
+            "target_down_total_cash": 0.0,
+            "current_gds_ratio": 0.0,
+            "stress_test_passed": False,
+            "hyp_monthly_housing": 0.0,
+            "max_monthly_housing": 0.0,
+            "qualifying_rate": 0.0,
+            "stress_payment_monthly": 0.0,
+            "actual_payment_monthly": 0.0,
+            "mortgage_amount": 0.0,
+            "amortization_years": 0,
+            "est_tax_monthly": 0.0,
+            "est_heat_monthly": 0.0
+        }
         
     t = targets[state.next_target_idx]
     
@@ -347,13 +364,19 @@ def _calculate_readiness_stats(state: SimulationState, targets: list, market_par
     
     target_down_total_cash = req_down_amt + closing_costs
 
+    # Stress Test Metrics
     qual_rate_gds = get_qualifying_rate(market_params.mortgage_rate, market_params.mortgage_stress_rate_floor)
-    qual_payment_gds = calculate_mortgage_payment(total_new_loan, qual_rate_gds, amortization_years)
+    qual_payment_gds_monthly = calculate_mortgage_payment(total_new_loan, qual_rate_gds, amortization_years)
     
-    est_tax_gds = t.price * 0.01
-    est_heat_gds = 1800.0
+    # Actual Payment Metrics (What user would actually pay)
+    actual_payment_monthly = calculate_mortgage_payment(total_new_loan, market_params.mortgage_rate, amortization_years)
+
+    est_tax_annual = t.price * 0.01
+    est_heat_annual = 1800.0
+    # Note: GDS includes 50% of condo fees. Assuming 0 condo fees for generic targets for now unless added to model.
+    # If we add condo fees to PropertyTarget later, update here.
     
-    annual_housing_gds = (qual_payment_gds * 12) + est_tax_gds + est_heat_gds
+    annual_housing_gds = (qual_payment_gds_monthly * 12) + est_tax_annual + est_heat_annual + 0 # + 0.5 * condo_fees
     current_gds_ratio = annual_housing_gds / state.current_gross_income
     stress_test_passed = current_gds_ratio <= 0.39
     
@@ -363,24 +386,39 @@ def _calculate_readiness_stats(state: SimulationState, targets: list, market_par
     # Note: We use the *current* gross income which has been indexed
     max_monthly = (state.current_gross_income * 0.39) / 12.0
     
-    return target_down_total_cash, current_gds_ratio, stress_test_passed, hyp_monthly, max_monthly
+    return {
+        "target_down_total_cash": target_down_total_cash,
+        "current_gds_ratio": current_gds_ratio,
+        "stress_test_passed": stress_test_passed,
+        "hyp_monthly_housing": hyp_monthly,
+        "max_monthly_housing": max_monthly,
+        "qualifying_rate": qual_rate_gds,
+        "stress_payment_monthly": qual_payment_gds_monthly,
+        "actual_payment_monthly": actual_payment_monthly,
+        "mortgage_amount": total_new_loan,
+        "amortization_years": amortization_years,
+        "est_tax_monthly": est_tax_annual / 12.0,
+        "est_heat_monthly": est_heat_annual / 12.0
+    }
 
 def _apply_monthly_growth(state: SimulationState, targets: list, scenario: Scenario, market_params: GlobalMarketParams):
-    m_inf = market_params.inflation_rate / 12.0
-    m_rent_inf = market_params.rent_inflation_rate / 12.0
-    m_prop_inf = market_params.property_appreciation_rate / 12.0
+    # Geometric Monthly Rates
+    m_inf_geo = (1 + market_params.inflation_rate) ** (1/12) - 1
+    m_rent_inf_geo = (1 + market_params.rent_inflation_rate) ** (1/12) - 1
+    m_prop_inf_geo = (1 + market_params.property_appreciation_rate) ** (1/12) - 1
     
-    # Monthly Inflation for Expenses, Rent, Property Values
-    state.current_living_expenses *= (1 + m_inf)
+    # Monthly Inflation for Expenses, Rent, Property Values, AND Income
+    state.current_living_expenses *= (1 + m_inf_geo)
+    state.current_gross_income *= (1 + m_inf_geo) # Income now indexed monthly
     
     if not state.is_owner:
-        state.current_rent *= (1 + m_rent_inf)
+        state.current_rent *= (1 + m_rent_inf_geo)
         
     if state.is_owner:
-        state.home_value *= (1 + m_prop_inf)
+        state.home_value *= (1 + m_prop_inf_geo)
         
     for t in targets:
-        t.price *= (1 + m_prop_inf)
+        t.price *= (1 + m_prop_inf_geo)
         
     # Investment Growth
     roi = scenario.investment_profile.pre_buy_roi

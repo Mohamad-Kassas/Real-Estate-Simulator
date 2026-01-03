@@ -54,13 +54,13 @@ class TestFinancials(unittest.TestCase):
 
     def test_mortgage_payment(self):
         # $100,000 Principal, 5% Rate, 25 Years
-        # Monthly Rate = 0.05/12
-        # n = 300
-        # Expected ~584.59
+        # Canadian Semi-Annual Compounding
+        # Effective Monthly Rate = (1.025)^(1/6) - 1 ~= 0.0041239
+        # Expected ~581.60
         principal = 100000
         rate = 0.05
         payment = calculate_mortgage_payment(principal, rate, 25)
-        self.assertAlmostEqual(payment, 584.59, places=2)
+        self.assertAlmostEqual(payment, 581.60, places=2)
 
     def test_stress_test_pass(self):
         # Income 100k
