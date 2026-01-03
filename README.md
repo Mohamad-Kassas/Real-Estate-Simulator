@@ -103,11 +103,3 @@ You can now adjust your financial parameters (Income, Savings, Property Targets)
 │   └── tailwind.config.js  # Styling Config
 └── PROJECT_DOCUMENTATION.md # Detailed Technical Reference
 ```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-[MIT](LICENSE)
