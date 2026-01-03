@@ -43,15 +43,15 @@ const FinancialSnapshot = ({ currentRecord, viewYear, scenario, marketParams, fo
           <div className="pl-2 border-l-2 border-indigo-100 dark:border-indigo-900 space-y-1 pt-1">
             <div className="flex justify-between text-pink-500">
               <span>- Lifestyle</span>
-              <span>{formatCurrency(currentRecord["Monthly Surplus"] * scenario.discretionary_spending_percent)}</span>
+              <span>{formatCurrency(Math.max(0, currentRecord["Net Monthly Income"] - (currentRecord["Housing Expense"] || 0) - currentRecord["Living Expenses"] - (currentRecord["Net Monthly Income"] * scenario.investment_percent) - (currentRecord["Net Monthly Income"] * scenario.cash_savings_percent)))}</span>
             </div>
             <div className="flex justify-between text-emerald-500">
               <span>- Cash Save</span>
-              <span>{formatCurrency(currentRecord["Monthly Surplus"] * scenario.cash_savings_percent)}</span>
+              <span>{formatCurrency(currentRecord["Net Monthly Income"] * scenario.cash_savings_percent)}</span>
             </div>
             <div className="flex justify-between text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-900/30 p-1 rounded">
               <span>= Invest</span>
-              <span>{formatCurrency(currentRecord["Monthly Surplus"] * (1 - scenario.discretionary_spending_percent - scenario.cash_savings_percent))}</span>
+              <span>{formatCurrency(currentRecord["Net Monthly Income"] * scenario.investment_percent)}</span>
             </div>
           </div>
         </div>

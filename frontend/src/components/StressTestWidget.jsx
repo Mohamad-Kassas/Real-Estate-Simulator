@@ -56,18 +56,23 @@ const StressTestWidget = ({ currentData, formatCurrency }) => {
 
           {/* Reality */}
           <div className="space-y-1">
-              <div className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-gray-500 uppercase">Your Plan</div>
+              <div className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-gray-500 uppercase">Actual Payment</div>
               <div className="text-2xl font-bold text-slate-700 dark:text-gray-200">{formatCurrency(actualPayment)}<span className="text-sm font-normal text-slate-400 dark:text-gray-500">/mo</span></div>
               <div className="text-xs text-slate-500 dark:text-gray-400">@ Contract Rate</div>
           </div>
 
           {/* Stress Test */}
           <div className="space-y-1 pl-4">
-              <div className="text-[10px] font-bold tracking-wider text-red-500 dark:text-red-400 uppercase flex items-center gap-1">
-                Bank Test 
+              <div className={`text-[10px] font-bold tracking-wider uppercase flex items-center gap-1 ${passed ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                Stress Test
               </div>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(stressPayment)}<span className="text-sm font-normal text-red-300 dark:text-red-500">/mo</span></div>
-              <div className="text-xs text-red-500 dark:text-red-400">@ <span className="font-bold">{(qualRate * 100).toFixed(2)}%</span> (Qualifying)</div>
+              <div className={`text-2xl font-bold ${passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                {formatCurrency(stressPayment)}
+                <span className={`text-sm font-normal ${passed ? 'text-emerald-300 dark:text-emerald-500' : 'text-red-300 dark:text-red-500'}`}>/mo</span>
+              </div>
+              <div className={`text-xs ${passed ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                @ <span className="font-bold">{(qualRate * 100).toFixed(2)}%</span> (Qualifying)
+              </div>
           </div>
       </div>
 
