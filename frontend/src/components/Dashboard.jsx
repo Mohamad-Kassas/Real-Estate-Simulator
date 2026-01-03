@@ -1,5 +1,6 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import StressTestWidget from './StressTestWidget';
 
 const Dashboard = ({
   scenario,
@@ -27,6 +28,11 @@ const Dashboard = ({
     tooltipBorder: darkMode ? '#4b5563' : '#e2e8f0',
     tooltipColor: darkMode ? '#e5e7eb' : '#1f2937',
   };
+
+  // Determine which data point to show in widgets
+  // Default to the last month of the selected viewYear, or the very last record if not specified
+  const targetYearIndex = viewYear !== undefined ? Math.min(Math.floor(viewYear * 12), results.length - 1) : results.length - 1;
+  const currentData = results.length > 0 ? results[targetYearIndex] : null;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -104,25 +110,52 @@ const Dashboard = ({
            </ResponsiveContainer>
         </div>
 
-        {/* Insights / Stats Grid */}
-        <div className="grid grid-cols-3 gap-6">
-           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
-             <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Total Liquid Assets</h3>
-             <div className="text-xl font-bold text-slate-800 dark:text-gray-100">
-               {formatCurrency(results.length > 0 ? results[results.length-1]["Liquid Assets"] : 0)}
-             </div>
+        {/* Bottom Section: Split into Stats Grid and Stress Test Widget */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           {/* Left Col: Key Stats (Spans 2 columns on large screens) */}
+           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6 h-full">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Liquid Assets</h3>
+                    <div className="text-xl font-bold text-slate-800 dark:text-gray-100">
+                    {formatCurrency(currentData ? currentData["Liquid Assets"] : 0)}
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Home Equity</h3>
+                    <div className="text-xl font-bold text-slate-800 dark:text-gray-100">
+                    {formatCurrency(currentData ? currentData["Home Equity"] : 0)}
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Mortgage Debt</h3>
+                    <div className="text-xl font-bold text-red-600 dark:text-red-400">
+                    {formatCurrency(currentData ? currentData["Mortgage Debt"] : 0)}
+                    </div>
+                </div>
+                {/* Additional Stats Row */}
+                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Net Monthly Income</h3>
+                    <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(currentData ? currentData["Net Monthly Income"] : 0)}
+                    </div>
+                </div>
+                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Monthly Housing</h3>
+                    <div className="text-xl font-bold text-slate-800 dark:text-gray-100">
+                    {formatCurrency(currentData ? currentData["Housing Expense"] : 0)}
+                    </div>
+                </div>
+                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Monthly Surplus</h3>
+                    <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                    {formatCurrency(currentData ? currentData["Monthly Surplus"] : 0)}
+                    </div>
+                </div>
            </div>
-           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
-             <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Final Home Equity</h3>
-             <div className="text-xl font-bold text-slate-800 dark:text-gray-100">
-               {formatCurrency(results.length > 0 ? results[results.length-1]["Home Equity"] : 0)}
-             </div>
-           </div>
-           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
-             <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Mortgage Debt</h3>
-             <div className="text-xl font-bold text-red-600 dark:text-red-400">
-               {formatCurrency(results.length > 0 ? results[results.length-1]["Mortgage Debt"] : 0)}
-             </div>
+
+           {/* Right Col: Stress Test Widget */}
+           <div className="lg:col-span-1 h-full">
+               <StressTestWidget currentData={currentData} formatCurrency={formatCurrency} />
            </div>
         </div>
 
