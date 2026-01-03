@@ -132,23 +132,23 @@ const Dashboard = ({
                     {formatCurrency(currentData ? currentData["Mortgage Debt"] : 0)}
                     </div>
                 </div>
-                {/* Additional Stats Row */}
+                {/* Row 2 */}
                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
-                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Net Monthly Income</h3>
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Total Investments</h3>
                     <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {formatCurrency(currentData ? currentData["Net Monthly Income"] : 0)}
+                    {formatCurrency(currentData ? (currentData["Liquid Assets"] - currentData["Cash Savings"]) : 0)}
                     </div>
                 </div>
                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
-                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Monthly Housing</h3>
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Total Savings</h3>
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                    {formatCurrency(currentData ? currentData["Cash Savings"] : 0)}
+                    </div>
+                </div>
+                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
+                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Monthly Housing Payment</h3>
                     <div className="text-xl font-bold text-slate-800 dark:text-gray-100">
                     {formatCurrency(currentData ? currentData["Housing Expense"] : 0)}
-                    </div>
-                </div>
-                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-center">
-                    <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 uppercase mb-2">Monthly Surplus</h3>
-                    <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                    {formatCurrency(currentData ? currentData["Monthly Surplus"] : 0)}
                     </div>
                 </div>
            </div>

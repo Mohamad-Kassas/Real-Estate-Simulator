@@ -215,7 +215,7 @@ const Sidebar = ({
               <input type="number" name="rent_inflation_rate" value={(marketParams.rent_inflation_rate * 100).toFixed(2)} onChange={handleMarketChange} className="w-full p-1 border rounded text-xs bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100 border-slate-200 dark:border-gray-600" step="0.01" />
              </div>
              <div>
-              <label className="text-xs text-slate-500 dark:text-gray-400">Mortgage %</label>
+              <label className="text-xs text-slate-500 dark:text-gray-400">Mortgage Rate (%)</label>
               <input type="number" name="mortgage_rate" value={(marketParams.mortgage_rate * 100).toFixed(2)} onChange={handleMarketChange} className="w-full p-1 border rounded text-xs bg-white dark:bg-gray-700 text-slate-900 dark:text-gray-100 border-slate-200 dark:border-gray-600" step="0.01" />
              </div>
           </div>
